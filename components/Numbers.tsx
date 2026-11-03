@@ -101,7 +101,8 @@ export function CctGauge() {
   const f = (k - CCT_MIN) / (CCT_MAX - CCT_MIN);
   const ang = Math.PI * (1 - f);
   const cx = 70, cy = 70, r = 54;
-  const pt = (a: number, rr: number) => [cx + Math.cos(a) * rr, cy - Math.sin(a) * rr];
+  // Rounded so server and browser render identical attributes.
+  const pt = (a: number, rr: number) => [Math.round((cx + Math.cos(a) * rr) * 100) / 100, Math.round((cy - Math.sin(a) * rr) * 100) / 100];
   const [nx, ny] = pt(ang, r - 12);
   const [rr, gg, bb] = kelvinToRgb(k);
 

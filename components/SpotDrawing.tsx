@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 // FB deep cone spotlight, 10–12 W size: front Ø59, cut-out Ø55, height 82 (data/products.ts).
 // Drawn at 2 px per mm. `finish` tints the trim to match the picked housing finish.
+// Rounded so server and browser render identical attributes.
+const rd = (v: number) => Math.round(v * 100) / 100;
 const tints: Record<string, string> = { White: "#f1f1ee", Black: "#2a2d31", Gold: "#c9a45c" };
 
 export default function SpotDrawing({ finish = "White" }: { finish?: string }) {
@@ -23,6 +25,7 @@ export default function SpotDrawing({ finish = "White" }: { finish?: string }) {
   const fins = Array.from({ length: 16 }, (_, i) => (i / 16) * Math.PI * 2);
   // side elevation: trim at top, body below, x-centred at sx
   const sx = 290, top = 58, trimH = 4 * S, bodyW = 46 * S, h = 82 * S;
+  const cone = Math.round(46 * S * 0.62); // depth of the recessed cone below the trim
   const tint = tints[finish] ?? tints.White;
 
   return (
@@ -39,7 +42,7 @@ export default function SpotDrawing({ finish = "White" }: { finish?: string }) {
         <line x1={cx - 78} y1={cy} x2={cx + 78} y2={cy} /><line x1={cx} y1={cy - 78} x2={cx} y2={cy + 78} />
       </g>
       {fins.map(a => (
-        <line key={a} className="d thin" pathLength={1} x1={cx + Math.cos(a) * r(48)} y1={cy + Math.sin(a) * r(48)} x2={cx + Math.cos(a) * r(64)} y2={cy + Math.sin(a) * r(64)} />
+        <line key={a} className="d thin" pathLength={1} x1={rd(cx + Math.cos(a) * r(48))} y1={rd(cy + Math.sin(a) * r(48))} x2={rd(cx + Math.cos(a) * r(64))} y2={rd(cy + Math.sin(a) * r(64))} />
       ))}
       <circle cx={cx} cy={cy} r={r(59)} className="d trim" pathLength={1} style={{ fill: tint }} />
       <circle cx={cx} cy={cy} r={r(59)} className="d" pathLength={1} fill="url(#drw-hatch)" />
@@ -67,10 +70,10 @@ export default function SpotDrawing({ finish = "White" }: { finish?: string }) {
       <g className="cl"><line x1={sx} y1={top - 14} x2={sx} y2={top + h + 10} /></g>
       <rect x={sx - r(59)} y={top} width={59 * S} height={trimH} rx="2" className="d trim" pathLength={1} style={{ fill: tint }} />
       <path className="d" pathLength={1} fill="url(#drw-hatch)"
-        d={`M ${sx - r(47)} ${top + trimH} L ${sx - r(20)} ${top + trimH + 46 * S * 0.62} L ${sx + r(20)} ${top + trimH + 46 * S * 0.62} L ${sx + r(47)} ${top + trimH} Z`} />
-      <rect x={sx - bodyW / 2} y={top + trimH + 46 * S * 0.62} width={bodyW} height={h - trimH - 46 * S * 0.62 - 8} rx="3" className="d" pathLength={1} />
+        d={`M ${sx - r(47)} ${top + trimH} L ${sx - r(20)} ${top + trimH + cone} L ${sx + r(20)} ${top + trimH + cone} L ${sx + r(47)} ${top + trimH} Z`} />
+      <rect x={sx - bodyW / 2} y={top + trimH + cone} width={bodyW} height={h - trimH - cone - 8} rx="3" className="d" pathLength={1} />
       {Array.from({ length: 7 }, (_, i) => {
-        const y = top + trimH + 46 * S * 0.62 + 8 + i * 8;
+        const y = top + trimH + cone + 8 + i * 8;
         return <line key={i} className="d thin" pathLength={1} x1={sx - bodyW / 2 - 6} y1={y} x2={sx + bodyW / 2 + 6} y2={y} />;
       })}
       <rect x={sx - r(32)} y={top + h - 8} width={32 * S} height="8" rx="2" className="d" pathLength={1} />

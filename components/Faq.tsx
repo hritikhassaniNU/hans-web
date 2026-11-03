@@ -15,7 +15,7 @@ export default function Faq() {
   return (
     <div className="faq">
       <div className="faq-side">
-        <span className="eyebrow"><b>[09]</b><span>FAQ</span></span>
+        <span className="eyebrow"><b>[10]</b><span>FAQ</span></span>
         <h2>Frequently asked <em>questions</em></h2>
         <p>Drivers, chips, kits, delivery and payment. Can’t find your answer?</p>
         <Link className="btn" href="/contact">Talk to our sales team <i aria-hidden="true">→</i></Link>

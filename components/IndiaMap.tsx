@@ -6,8 +6,10 @@ import { dispatch, indiaOutline, islands, works, zones } from "@/data/reach";
 const W = 860, H = 820, LON0 = 63.2, LON1 = 98, LAT0 = 6.5, LAT1 = 37.5;
 const merc = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
 const Y0 = merc(LAT1), Y1 = merc(LAT0);
+// Rounded so server and browser produce identical numbers (Math.log/tan can differ in the last digits).
+const r2 = (v: number) => Math.round(v * 100) / 100;
 const project = ([lon, lat]: [number, number]): [number, number] =>
-  [((lon - LON0) / (LON1 - LON0)) * W, ((Y0 - merc(lat)) / (Y0 - Y1)) * H];
+  [r2(((lon - LON0) / (LON1 - LON0)) * W), r2(((Y0 - merc(lat)) / (Y0 - Y1)) * H)];
 
 function inside([x, y]: [number, number], poly: [number, number][]) {
   let hit = false;
@@ -23,7 +25,7 @@ function arc(a: [number, number], b: [number, number]) {
   const [x1, y1] = a, [x2, y2] = b;
   const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, len = Math.hypot(x2 - x1, y2 - y1);
   const cx = mx + ((y1 - y2) / len) * len * 0.28, cy = my + ((x2 - x1) / len) * len * 0.28 - len * 0.12;
-  return { d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`, mid: [0.25 * x1 + 0.5 * cx + 0.25 * x2, 0.25 * y1 + 0.5 * cy + 0.25 * y2] as [number, number] };
+  return { d: `M ${x1} ${y1} Q ${r2(cx)} ${r2(cy)} ${x2} ${y2}`, mid: [0.25 * x1 + 0.5 * cx + 0.25 * x2, 0.25 * y1 + 0.5 * cy + 0.25 * y2] as [number, number] };
 }
 
 export default function IndiaMap() {

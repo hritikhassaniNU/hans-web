@@ -658,6 +658,55 @@ h2, .head h1 { margin: 0; font-family: var(--display); font-weight: 750; font-st
 .faq-a .mono { font-size: 11px; color: var(--ink-2); padding-top: 4px; }
 .faq-a p { margin: 0; color: var(--ink-2); }
 
+/* home: colour temperature scene */
+.cct-wrap { padding: 24px 44px 40px; }
+.cct-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.cct-tabs button { display: inline-flex; align-items: center; gap: 10px; font: 500 15px var(--sans); padding: 10px 16px; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); cursor: pointer; transition: border-color .15s, background .15s; }
+.cct-tabs button .mono { font-size: 11px; color: var(--ink-2); }
+.cct-tabs button:hover { border-color: var(--ink-2); }
+.cct-tabs button[aria-selected="true"] { background: #0a0b0d; color: #fff; border-color: #0a0b0d; }
+.cct-tabs button[aria-selected="true"] .mono { color: var(--accent); }
+.cct-stage { display: grid; grid-template-columns: minmax(0, 1fr) 300px; border-radius: 16px; overflow: hidden; background: #16181b; box-shadow: 0 30px 60px -36px rgba(0, 0, 0, .6); }
+.cct-svg { display: block; width: 100%; height: auto; }
+.cct-svg .room { fill: #16181b; }
+.cct-svg .tint { fill: var(--light); opacity: .05; transition: fill .2s; }
+.cct-svg .edge { stroke: #2c3036; stroke-width: 2; }
+.cct-svg .beam polygon, .cct-svg .beam ellipse { mix-blend-mode: screen; transition: fill .2s; }
+.cct-svg .beam .lens { stroke: var(--light); stroke-width: 3.5; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--light)); }
+.cct-svg .fit { fill: #4a5058; }
+.cct-svg .top { fill: #6b727b; }
+.cct-svg .stroke { fill: none; stroke: #5a6169; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.cct-svg .solid { fill: #3d4249; }
+.cct-svg .board { fill: #23262a; stroke: #33373c; stroke-width: 2; }
+.cct-svg .hole { fill: #33373c; }
+.cct-svg .obj .top, .cct-svg .obj .solid { filter: drop-shadow(0 -2px 6px rgba(var(--lr), .25)); }
+.cct-read { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 32px 30px; background: #0c0d0f; color: #f2f3f4; border-left: 1px solid #23262a; }
+.cct-read > span.mono { font-size: 12px; letter-spacing: .18em; color: #9aa3ad; }
+.cct-read > b.mono { font-size: clamp(44px, 5vw, 72px); line-height: 1; font-weight: 600; letter-spacing: -.02em; color: var(--light); text-shadow: 0 0 40px rgba(var(--lr), .35); transition: color .2s; font-variant-numeric: tabular-nums; }
+.cct-name { font-size: 20px; font-weight: 600; }
+.cct-read p { margin: 0; color: #9aa3ad; font-size: 15px; }
+.cct-read dl { margin: 10px 0 0; display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid #23262a; }
+.cct-read dt { font: 500 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #6b737d; }
+.cct-read dd { margin: 2px 0 0; font: 500 13px var(--mono); }
+.cct-read a { margin-top: 8px; font-weight: 600; font-size: 14px; color: #ff8a45; text-decoration: none; }
+.cct-read a:hover { text-decoration: underline; }
+.cct-slider { position: relative; margin: 28px auto 0; max-width: 1000px; padding: 0 28px 64px; }
+.cct-slider input { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; margin: 0; border-radius: 14px; background: linear-gradient(90deg, #ffb46b, #ffd2a1 12%, #ffe4c4 34%, #fff6ed 60%, #e6ecff 100%); border: 1px solid var(--rule); cursor: pointer; }
+.cct-slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle, var(--light) 0 34%, #fff 36%); border: 1px solid var(--rule); box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
+.cct-slider input::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle, var(--light) 0 34%, #fff 36%); border: 1px solid var(--rule); box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
+.cct-slider input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.cct-slider ol { list-style: none; margin: 0; padding: 0; position: absolute; left: 28px; right: 28px; top: 30px; }
+.cct-slider li { position: absolute; transform: translateX(-50%); }
+.cct-slider li:first-child { transform: none; }
+.cct-slider li:last-child { transform: translateX(-100%); }
+.cct-slider li button { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 4px; text-align: center; }
+.cct-slider li:first-child button { text-align: left; }
+.cct-slider li:last-child button { text-align: right; }
+.cct-slider li b { font-size: 13px; font-weight: 600; color: var(--ink); }
+.cct-slider li span { font-size: 13px; color: var(--ink-2); }
+.cct-slider li button[aria-pressed="true"] span { color: var(--accent-ink); font-weight: 600; }
+.cct-slider li button:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+
 /* home: India dispatch map */
 .reach { padding: 0 44px 40px; --land: color-mix(in srgb, var(--ink-2) 38%, transparent); }
 .reach-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rule); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
@@ -835,6 +884,9 @@ h2, .head h1 { margin: 0; font-family: var(--display); font-weight: 750; font-st
   .apps-bar { padding: 20px 22px 0; }
   .ft-cols { grid-template-columns: 1fr 1fr; margin-top: -28px; }
   .reach { padding: 0 22px 28px; }
+  .cct-wrap { padding: 20px 22px 30px; }
+  .cct-stage { grid-template-columns: 1fr; }
+  .cct-read { border-left: 0; border-top: 1px solid #23262a; padding: 22px; }
   .reach-map { grid-template-columns: 1fr; }
   .reach-legend { margin: 0; }
   .ft-brand { grid-column: 1 / -1; }
@@ -866,6 +918,12 @@ h2, .head h1 { margin: 0; font-family: var(--display); font-weight: 750; font-st
   .apps-count { min-width: 0; }
   .callout, .dims .lead, .dims .ring { display: none; }
   .reach-bar .hide-sm { display: none; }
+  .cct-tabs { overflow-x: auto; }
+  .cct-tabs button { flex: 0 0 auto; }
+  .cct-slider { padding: 0 8px 64px; }
+  .cct-slider ol { left: 8px; right: 8px; }
+  .cct-slider li:nth-child(2) { display: none; }
+  .cct-slider li b, .cct-slider li span { font-size: 11.5px; }
   .ruler em:not(.first):not(.last) { display: none; }
   .ruler .ticks i.min { display: none; }
   .nb-body { padding: 30px 20px 20px; }

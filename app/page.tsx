@@ -6,6 +6,7 @@ import CapabilityIndex from "@/components/CapabilityIndex";
 import Applications from "@/components/Applications";
 import Faq from "@/components/Faq";
 import IndiaMap from "@/components/IndiaMap";
+import CctScene from "@/components/CctScene";
 import { YearsCard, Datasheet, CctGauge } from "@/components/Numbers";
 import JsonLd from "@/components/JsonLd";
 import DriverFinder from "@/components/DriverFinder";
@@ -144,22 +145,29 @@ export default function Home() {
         <div className="more"><Link href="/oem">More on OEM supply</Link></div>
       </section>
 
+      <section className="block" aria-labelledby="cct-h">
+        <SectionHead sheet="06" label="Colour temperature" title={<>Warm for the dining table, <em>crisp for the workbench</em></>} id="cct-h">
+          The same fitting can be ordered anywhere from 2700 K to 6500 K. Drag the slider, or pick a space, to see how each one looks.
+        </SectionHead>
+        <CctScene />
+      </section>
+
       <section className="block" aria-labelledby="use-h">
-        <SectionHead sheet="06" label="Where our lights go" title={<>Lighting for <em>every space</em></>} id="use-h">
+        <SectionHead sheet="07" label="Where our lights go" title={<>Lighting for <em>every space</em></>} id="use-h">
           From a single bathroom spot to a campus of street lights, these are the spaces our fittings are made for.
         </SectionHead>
         <Applications />
       </section>
 
       <section className="block" aria-labelledby="reach-h">
-        <SectionHead sheet="07" label="Dispatch" title={<>Delivering <em>across India</em></>} id="reach-h">
+        <SectionHead sheet="08" label="Dispatch" title={<>Delivering <em>across India</em></>} id="reach-h">
           From our works in Vasai, orders leave by road, air, cargo or sea for nearly every major city in India, from Chandigarh to Kochi and Ahmedabad to Guwahati.
         </SectionHead>
         <IndiaMap />
       </section>
 
       <section className="block" aria-labelledby="drivers-h">
-        <SectionHead sheet="08" label="Stocked drivers" title={<>Driver <em>finder</em></>} id="drivers-h">
+        <SectionHead sheet="09" label="Stocked drivers" title={<>Driver <em>finder</em></>} id="drivers-h">
           A selection of the constant-current, constant-voltage and DALI drivers we keep. Philips drivers are stocked from 5 W to 150 W. If you don’t see the rating you need, ask us.
         </SectionHead>
         <DriverFinder />
