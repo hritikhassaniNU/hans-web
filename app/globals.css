@@ -690,6 +690,41 @@ h2, .head h1 { margin: 0; font-family: var(--display); font-weight: 750; font-st
 .cct-read dd { margin: 2px 0 0; font: 500 13px var(--mono); }
 .cct-read a { margin-top: 8px; font-weight: 600; font-size: 14px; color: #ff8a45; text-decoration: none; }
 .cct-read a:hover { text-decoration: underline; }
+.cct-svg .fit2 { fill: #2c3036; }
+.cct-svg .pr-shadow { fill: #000; opacity: .45; }
+.cct-svg .pr-frame { fill: none; stroke: #4f565e; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.cct-svg .pr-frame.thin { stroke-width: 2; }
+.cct-svg .pr-plate-well { fill: none; stroke: #8e949b; stroke-width: 1; }
+.cct-svg .pr-metal { fill: none; stroke: #b9bec4; stroke-width: 2; stroke-linecap: round; }
+.cct-svg .pr-glass { stroke: rgba(255, 255, 255, .45); stroke-width: 1.2; fill-opacity: 1; }
+.cct-svg path.pr-glass:not([fill]) { fill: none; }
+.cct-svg .pr-wine { fill: #6d1f2a; }
+.cct-svg .pr-water { fill: rgba(170, 200, 230, .18); }
+.cct-svg .pr-stem { fill: none; stroke: #4d6a44; stroke-width: 2; stroke-linecap: round; }
+.cct-svg .pr-bloom { fill: #c9a24a; }
+.cct-svg .pr-band { stroke: rgba(255, 255, 255, .18); stroke-width: 1.2; fill: none; }
+.cct-svg .pr-band.dark { stroke: rgba(0, 0, 0, .35); stroke-width: 2; }
+.cct-svg .pr-strap { fill: none; stroke: #3a3029; stroke-width: 3; stroke-linecap: round; }
+.cct-svg .pr-clasp { fill: #b9a06a; }
+.cct-svg .pr-amber { fill: rgba(214, 150, 70, .55); }
+.cct-svg .pr-amber-solid { fill: #b8742e; }
+.cct-svg .pr-red { fill: #8a2f28; }
+.cct-svg .pr-tool { fill: #4a5058; stroke: #2a2e33; stroke-width: 1; }
+/* edges facing the fitting catch its colour and brightness */
+.cct-svg .hl { fill: none; stroke: var(--light); stroke-width: 1.6; stroke-linecap: round; opacity: calc(var(--glow-k) * .75); transition: stroke .2s, opacity .25s; }
+.cct-svg .hl.thin { stroke-width: 1; }
+.cct-svg .beam { transition: opacity .25s ease; }
+.cct-svg .lens { transition: opacity .25s ease; }
+.cct-config { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+.cct-config .cfg-row { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-end; }
+.cct-config .cfg { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cct-config .cfg > .mono { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+.cct-config .chip { font-size: 14px; padding: 8px 13px; }
+.cct-config .chip.mono { font-size: 13px; }
+.cct-config .chip[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); box-shadow: 0 8px 16px -10px rgba(0, 0, 0, .5); }
+.cct-config .dimmer { flex: 1 1 180px; }
+.cct-config .dimmer input { width: 100%; accent-color: var(--accent); }
+.cct-note { margin: 4px auto 0; max-width: 1000px; padding: 0 28px; font-size: 13px; color: var(--ink-2); text-align: center; }
 .cct-slider { position: relative; margin: 28px auto 0; max-width: 1000px; padding: 0 28px 64px; }
 .cct-slider input { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; margin: 0; border-radius: 14px; background: linear-gradient(90deg, #ffb46b, #ffd2a1 12%, #ffe4c4 34%, #fff6ed 60%, #e6ecff 100%); border: 1px solid var(--rule); cursor: pointer; }
 .cct-slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle, var(--light) 0 34%, #fff 36%); border: 1px solid var(--rule); box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
@@ -923,6 +958,10 @@ h2, .head h1 { margin: 0; font-family: var(--display); font-weight: 750; font-st
   .cct-slider { padding: 0 8px 64px; }
   .cct-slider ol { left: 8px; right: 8px; }
   .cct-slider li:nth-child(2) { display: none; }
+  .cct-config { padding: 14px; }
+  .cct-config .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .cct-config .chip { flex: 0 0 auto; }
+  .cct-note { padding: 0 8px; }
   .cct-slider li b, .cct-slider li span { font-size: 11.5px; }
   .ruler em:not(.first):not(.last) { display: none; }
   .ruler .ticks i.min { display: none; }

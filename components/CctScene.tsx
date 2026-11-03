@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { kelvinToRgb } from "@/components/viewer/kelvin";
+import { dimmingModes, matchDriver, sceneFittings, type Dimming, type Kind, type SceneFitting } from "@/data/cctScene";
+import { driverBrands } from "@/data/drivers";
+import { DiningProps, RetailProps, SceneDefs, WorkshopProps } from "@/components/SceneProps";
 
 const MIN = 2700, MAX = 6500;
 
@@ -16,20 +19,66 @@ const stops = [
 ];
 const nearest = (k: number) => stops.reduce((a, b) => (Math.abs(b.k - k) < Math.abs(a.k - k) ? b : a));
 
-type Beam = { x: number; y: number; w: number; tx: number; ty: number; tw: number };
-const scenes: { key: string; name: string; fitting: string; link: string; href: string; beams: Beam[] }[] = [
-  { key: "dining", name: "Dining", fitting: "COB downlights", link: "See COB downlights", href: "/products/cob-downlights",
-    beams: [{ x: 360, y: 48, w: 26, tx: 300, ty: 266, tw: 190 }, { x: 540, y: 48, w: 26, tx: 480, ty: 266, tw: 190 }] },
-  { key: "retail", name: "Retail", fitting: "Track lights", link: "See track lights", href: "/products/track-lights",
-    beams: [{ x: 300, y: 92, w: 22, tx: 420, ty: 300, tw: 120 }, { x: 450, y: 92, w: 22, tx: 520, ty: 230, tw: 120 }, { x: 600, y: 92, w: 22, tx: 610, ty: 300, tw: 120 }] },
-  { key: "workshop", name: "Workshop", fitting: "50 W high bay", link: "See outdoor & industrial", href: "/products/street-outdoor",
-    beams: [{ x: 450, y: 118, w: 70, tx: 210, ty: 380, tw: 480 }] }
+// Where each fitting hangs and what it is aimed at, per scene.
+type Mount = { x: number; aim: [number, number] };
+const scenes = [
+  { key: "dining" as const, name: "Dining", mounts: [{ x: 360, aim: [360, 266] }, { x: 540, aim: [540, 266] }] as Mount[] },
+  { key: "retail" as const, name: "Retail", mounts: [{ x: 300, aim: [470, 300] }, { x: 450, aim: [560, 230] }, { x: 600, aim: [650, 300] }] as Mount[] },
+  { key: "workshop" as const, name: "Workshop", mounts: [{ x: 450, aim: [450, 380] }] as Mount[] }
 ];
+
+const r1 = (v: number) => Math.round(v * 10) / 10;
+
+// Point the light leaves from, for each kind of fitting.
+function source(kind: Kind, x: number): [number, number] {
+  if (kind === "track") return [x, 98];
+  if (kind === "highbay") return [x, 118];
+  if (kind === "flood") return [x, 112];
+  return [x, 48];
+}
+
+function beamShape(kind: Kind, [sx, sy]: [number, number], [tx, ty]: [number, number], angle: number) {
+  const dx = tx - sx, dy = ty - sy, L = Math.hypot(dx, dy) || 1;
+  const ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+  const lens = kind === "highbay" ? 34 : kind === "flood" ? 22 : kind === "downlight" ? 13 : 10;
+  const spread = lens + L * Math.tan((angle * Math.PI) / 360);
+  const p = (x: number, y: number) => `${r1(x)},${r1(y)}`;
+  return {
+    poly: [p(sx + nx * lens, sy + ny * lens), p(sx - nx * lens, sy - ny * lens), p(tx - nx * spread, ty - ny * spread), p(tx + nx * spread, ty + ny * spread)].join(" "),
+    lens: { x1: r1(sx + nx * (lens - 2)), y1: r1(sy + ny * (lens - 2)), x2: r1(sx - nx * (lens - 2)), y2: r1(sy - ny * (lens - 2)) },
+    pool: { cx: tx, cy: ty, rx: r1(spread * 1.15), ry: r1(Math.max(6, spread * 0.12)) },
+    rot: r1((Math.atan2(dy, dx) * 180) / Math.PI - 90)
+  };
+}
+
+// The fitting body, drawn in its own frame with the lens at the origin and the beam along +y.
+function Body({ kind, x, rot }: { kind: Kind; x: number; rot: number }) {
+  switch (kind) {
+    case "spot":
+      return <path d={`M ${x - 16} 40 h 32 l -5 8 h -22 Z`} className="fit" />;
+    case "downlight":
+      return <path d={`M ${x - 24} 40 h 48 l -7 8 h -34 Z`} className="fit" />;
+    case "gimbal":
+      return <g><rect x={x - 18} y="40" width="36" height="5" className="fit" /><g transform={`rotate(${rot} ${x} 48)`}><rect x={x - 11} y="38" width="22" height="12" rx="2" className="fit" /></g></g>;
+    case "track":
+      return <g><rect x={x - 3} y="64" width="6" height="14" className="fit" /><g transform={`rotate(${rot} ${x} 98)`}><rect x={x - 11} y="74" width="22" height="24" rx="4" className="fit" /><rect x={x - 12} y="92" width="24" height="6" rx="2" className="fit2" /></g></g>;
+    case "highbay":
+      return <g><path d={`M ${x} 40 V 84`} className="stroke" /><path d={`M ${x - 12} 84 h 24 v 10 l 24 24 h -72 l 24 -24 Z`} className="fit" /></g>;
+    case "flood":
+      return <g><path d={`M ${x} 40 V 86`} className="stroke" /><g transform={`rotate(${rot} ${x} 112)`}><rect x={x - 26} y="88" width="52" height="24" rx="3" className="fit" />{[-16, -8, 0, 8, 16].map(o => <rect key={o} x={x + o - 1} y="84" width="2" height="5" className="fit2" />)}</g></g>;
+  }
+}
 
 export default function CctScene() {
   const ref = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(3000);
   const [scene, setScene] = useState(0);
+  const [fit, setFit] = useState(0);
+  const [watt, setWatt] = useState(0);
+  const [beam, setBeam] = useState(1);
+  const [brand, setBrand] = useState<(typeof driverBrands)[number]>("Philips");
+  const [dimMode, setDimMode] = useState<Dimming>("None");
+  const [level, setLevel] = useState(100);
   const touched = useRef(false);
 
   // One warm-to-cool sweep the first time the section comes into view, unless the visitor got there first.
@@ -54,85 +103,68 @@ export default function CctScene() {
     return () => { io.disconnect(); cancelAnimationFrame(raf); };
   }, []);
 
+  const s = scenes[scene];
+  const fittings = sceneFittings[s.key];
+  const f: SceneFitting = fittings[Math.min(fit, fittings.length - 1)];
+  const w = f.watts[Math.min(watt, f.watts.length - 1)];
+  const angle = f.beams ? f.beams[Math.min(beam, f.beams.length - 1)] : f.angle;
+  const driver = matchDriver(brand, w, dimMode);
+  const dimmable = dimMode !== "None" && !!driver;
+  const dim = dimmable ? level / 100 : 1;
+  // Brightness follows wattage (relative within the demo, not a lumen figure) and dim level.
+  const glow = Math.min(1, (0.45 + w / 60) * (0.25 + 0.75 * dim));
+
   const pick = (v: number) => { touched.current = true; setK(v); };
+  const chooseScene = (i: number) => { setScene(i); setFit(0); setWatt(0); setBeam(1); };
+  const chooseFit = (i: number) => { setFit(i); setWatt(0); setBeam(1); };
+
   const [r, g, b] = kelvinToRgb(k);
   const light = `rgb(${r}, ${g}, ${b})`;
-  const s = scenes[scene];
   const stop = nearest(k);
   const pct = ((k - MIN) / (MAX - MIN)) * 100;
+  const enquiry = `/contact?cat=${encodeURIComponent("LED drivers")}&item=${encodeURIComponent(`${brand} ${dimmingModes.find(d => d.key === dimMode)?.label} driver for ${f.name} ${w} W`)}`;
 
   return (
-    <div className="cct-wrap" ref={ref} style={{ ["--light" as string]: light, ["--lr" as string]: `${r}, ${g}, ${b}` }}>
+    <div className="cct-wrap" ref={ref} style={{ ["--light" as string]: light, ["--lr" as string]: `${r}, ${g}, ${b}`, ["--glow-k" as string]: glow }}>
       <div className="cct-tabs" role="tablist" aria-label="Choose a space">
         {scenes.map((sc, i) => (
-          <button key={sc.key} type="button" role="tab" aria-selected={i === scene} onClick={() => setScene(i)}>
+          <button key={sc.key} type="button" role="tab" aria-selected={i === scene} onClick={() => chooseScene(i)}>
             <span className="mono">0{i + 1}</span>{sc.name}
           </button>
         ))}
       </div>
       <div className="cct-stage">
-        <svg viewBox="0 0 900 420" className="cct-svg" role="img" aria-label={`${s.name} lit by ${s.fitting} at ${k} kelvin`}>
+        <svg viewBox="0 0 900 420" className="cct-svg" role="img" aria-label={`${s.name} lit by ${f.name}, ${w} W, at ${k} kelvin`}>
           <defs>
             <linearGradient id="cct-beam" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor={light} stopOpacity=".75" /><stop offset="1" stopColor={light} stopOpacity=".05" />
+              <stop offset="0" stopColor={light} stopOpacity=".8" /><stop offset="1" stopColor={light} stopOpacity=".05" />
             </linearGradient>
-            <radialGradient id="cct-pool"><stop offset="0" stopColor={light} stopOpacity=".55" /><stop offset="1" stopColor={light} stopOpacity="0" /></radialGradient>
+            <SceneDefs />
+            <radialGradient id="cct-pool"><stop offset="0" stopColor={light} stopOpacity=".6" /><stop offset="1" stopColor={light} stopOpacity="0" /></radialGradient>
           </defs>
           <rect width="900" height="420" className="room" />
           <rect width="900" height="420" className="tint" />
           <line x1="0" y1="40" x2="900" y2="40" className="edge" />
           <line x1="0" y1="380" x2="900" y2="380" className="edge" />
 
-          {s.beams.map((bm, i) => (
-            <g key={`${s.key}-${i}`} className="beam">
-              <polygon points={`${bm.x - bm.w / 2},${bm.y} ${bm.x + bm.w / 2},${bm.y} ${bm.tx + bm.tw},${bm.ty} ${bm.tx},${bm.ty}`} fill="url(#cct-beam)" />
-              <ellipse cx={bm.tx + bm.tw / 2} cy={bm.ty} rx={bm.tw * 0.62} ry={bm.tw * 0.09} fill="url(#cct-pool)" />
-              <line x1={bm.x - bm.w / 2 + 2} y1={bm.y} x2={bm.x + bm.w / 2 - 2} y2={bm.y} className="lens" />
-            </g>
-          ))}
+          {s.key === "dining" && <DiningProps />}
+          {s.key === "retail" && <RetailProps track={f.kind === "track"} />}
+          {s.key === "workshop" && <WorkshopProps />}
 
-          {s.key === "dining" && (
-            <g className="obj">
-              {[360, 540].map(x => <path key={x} d={`M ${x - 22} 40 h 44 l -6 8 h -32 Z`} className="fit" />)}
-              <rect x="260" y="266" width="380" height="7" rx="2" className="top" />
-              <path d="M 285 273 V 380 M 615 273 V 380" className="stroke" />
-              <path d="M 200 380 V 250 M 200 318 H 252 V 380 M 700 380 V 250 M 700 318 H 648 V 380" className="stroke" />
-              <ellipse cx="360" cy="262" rx="34" ry="6" className="solid" />
-              <rect x="512" y="232" width="18" height="34" rx="3" className="solid" />
-              <path d="M 430 266 q 6 -26 18 -26 q 12 0 18 26 Z" className="solid" />
-            </g>
-          )}
-          {s.key === "retail" && (
-            <g className="obj">
-              <rect x="180" y="58" width="540" height="6" rx="2" className="fit" />
-              {[300, 450, 600].map(x => (
-                <g key={x}><rect x={x - 3} y="64" width="6" height="14" className="fit" /><rect x={x - 11} y="76" width="22" height="18" rx="3" className="fit" /></g>
-              ))}
-              <rect x="360" y="300" width="320" height="6" rx="2" className="top" />
-              <rect x="460" y="230" width="140" height="5" rx="2" className="top" />
-              <path d="M 380 306 V 380 M 660 306 V 380" className="stroke" />
-              <rect x="390" y="252" width="44" height="48" rx="3" className="solid" />
-              <rect x="446" y="268" width="30" height="32" rx="3" className="solid" />
-              <path d="M 610 300 q -12 -36 6 -52 h 10 q 18 16 6 52 Z" className="solid" />
-              <rect x="490" y="196" width="34" height="34" rx="3" className="solid" />
-              <circle cx="560" cy="214" r="16" className="solid" />
-            </g>
-          )}
-          {s.key === "workshop" && (
-            <g className="obj">
-              <path d="M 450 40 V 86" className="stroke" />
-              <path d="M 438 86 h 24 v 10 l 26 22 h -76 l 26 -22 Z" className="fit" />
-              <rect x="120" y="120" width="190" height="130" rx="4" className="board" />
-              {Array.from({ length: 30 }, (_, i) => <circle key={i} cx={138 + (i % 6) * 31} cy={138 + Math.floor(i / 6) * 25} r="2" className="hole" />)}
-              <path d="M 160 150 v 50 M 200 150 l 18 46 M 240 150 v 40 h 20" className="stroke" />
-              <rect x="300" y="290" width="400" height="9" rx="2" className="top" />
-              <path d="M 320 299 V 380 M 680 299 V 380 M 320 340 H 680" className="stroke" />
-              <rect x="360" y="262" width="70" height="28" rx="3" className="solid" />
-              <path d="M 470 290 l 30 -40 l 8 6 l -26 34 Z" className="solid" />
-              <rect x="560" y="250" width="16" height="40" rx="2" className="solid" />
-              <rect x="590" y="270" width="60" height="20" rx="3" className="solid" />
-            </g>
-          )}
+          {s.mounts.map((m, i) => {
+            const src = source(f.kind, m.x);
+            const sh = beamShape(f.kind, src, m.aim, angle);
+            return (
+              <g key={`${s.key}-${f.slug}-${i}`}>
+                <g className="beam" style={{ opacity: glow }}>
+                  <polygon points={sh.poly} fill="url(#cct-beam)" />
+                  <ellipse {...sh.pool} fill="url(#cct-pool)" />
+                </g>
+                <Body kind={f.kind} x={m.x} rot={sh.rot} />
+                <line {...sh.lens} className="lens" style={{ opacity: 0.35 + 0.65 * dim }} />
+              </g>
+            );
+          })}
         </svg>
         <aside className="cct-read" aria-live="polite">
           <span className="mono">CCT</span>
@@ -140,12 +172,64 @@ export default function CctScene() {
           <span className="cct-name">{stop.name}</span>
           <p>{stop.use}</p>
           <dl>
-            <div><dt>Shown with</dt><dd>{s.fitting}</dd></div>
-            <div><dt>Range</dt><dd>2700 – 6500 K</dd></div>
+            <div><dt>Fitting</dt><dd>{f.name} · {w} W{f.beams ? ` · ${angle}°` : ""}</dd></div>
+            <div>
+              <dt>Driver</dt>
+              <dd>{driver ? `${driver.brand} ${driver.model}${driver.model.includes(`${driver.watts} W`) ? "" : ` · ${driver.watts} W`} · ${driver.output}` : `${brand} ${dimmingModes.find(d => d.key === dimMode)?.label} driver · on request`}</dd>
+            </div>
+            {dimmable && <div><dt>Dim level</dt><dd>{level}%</dd></div>}
           </dl>
-          <Link href={s.href}>{s.link} <i aria-hidden="true">→</i></Link>
+          {driver
+            ? <Link href={f.href}>See the {f.name} <i aria-hidden="true">→</i></Link>
+            : <Link href={enquiry}>Ask us for this driver <i aria-hidden="true">→</i></Link>}
         </aside>
       </div>
+
+      <div className="cct-config">
+        <div className="cfg">
+          <span className="mono">Fitting</span>
+          <div className="chips" role="group" aria-label="Fitting">
+            {fittings.map((ft, i) => <button key={ft.slug} type="button" className="chip" aria-pressed={ft.slug === f.slug} onClick={() => chooseFit(i)}>{ft.name}</button>)}
+          </div>
+        </div>
+        <div className="cfg-row">
+          {f.watts.length > 1 && (
+            <div className="cfg">
+              <span className="mono">Wattage</span>
+              <div className="chips" role="group" aria-label="Wattage">
+                {f.watts.map((v, i) => <button key={v} type="button" className="chip mono" aria-pressed={v === w} onClick={() => setWatt(i)}>{v} W</button>)}
+              </div>
+            </div>
+          )}
+          {f.beams && (
+            <div className="cfg">
+              <span className="mono">Beam</span>
+              <div className="chips" role="group" aria-label="Beam angle">
+                {f.beams.map((v, i) => <button key={v} type="button" className="chip mono" aria-pressed={v === angle} onClick={() => setBeam(i)}>{v}°</button>)}
+              </div>
+            </div>
+          )}
+          <div className="cfg">
+            <span className="mono">Driver</span>
+            <div className="chips" role="group" aria-label="Driver brand">
+              {driverBrands.map(b => <button key={b} type="button" className="chip" aria-pressed={b === brand} onClick={() => setBrand(b)}>{b}</button>)}
+            </div>
+          </div>
+          <div className="cfg">
+            <span className="mono">Dimming</span>
+            <div className="chips" role="group" aria-label="Dimming">
+              {dimmingModes.map(d => <button key={d.key} type="button" className="chip" aria-pressed={d.key === dimMode} onClick={() => setDimMode(d.key)}>{d.label}</button>)}
+            </div>
+          </div>
+          {dimmable && (
+            <label className="cfg dimmer">
+              <span className="mono">Dim · {level}%</span>
+              <input type="range" min={10} max={100} step={5} value={level} onChange={e => setLevel(+e.target.value)} aria-label="Dim level" />
+            </label>
+          )}
+        </div>
+      </div>
+
       <div className="cct-slider">
         <input type="range" min={MIN} max={MAX} step={100} value={k} onChange={e => pick(+e.target.value)} aria-label="Colour temperature in kelvin" aria-valuetext={`${k} K, ${stop.name}`} style={{ ["--p" as string]: `${pct}%` }} />
         <ol>
@@ -156,6 +240,7 @@ export default function CctScene() {
           ))}
         </ol>
       </div>
+      <p className="cct-note">Drivers are matched from our listed range by wattage; we confirm the output current for your COB when you enquire.</p>
     </div>
   );
 }
